@@ -1,3 +1,6 @@
+require('dotenv').config();
+const mongoose=require('mongoose');
+
 // 1.Bring in the Express tool we just installed.
 const express=require('express');
 
@@ -6,6 +9,16 @@ const app=express();
 
 //This tells Express to read JSON data sent by the client
 app.use(express.json());
+
+//Create the schema(The Blueprint)
+const userSchema=new mongoose.Schema({
+    name:String,
+    email:String,
+    age:Number
+});
+
+//Create the model(The Tool)
+const User= mongoose.model('User', userSchema);
 
 //3.Tell the application what to do when someone visits the main page('/') YOUR FİRST ROUTE(MAİN PAGE)
 app.get('/',function(request,response){
@@ -128,6 +141,35 @@ app.put('/api/user/:id',function(request,response){
     else{
         response.status(404).json({error:"User not found!"});
     }
+})
+
+//We connected Database
+mongoose.connect(process.env.MONGO_URI)
+.then(function(){
+    console.log("Connected to local MongoDB successfully!");
+})
+.catch(function(error){
+    console.log("Database connection failed:",error);
+});
+
+//Create the save route
+app.post('/users', async function(req,res){
+    try{
+        //1.Grab the data the user sent us
+        const userData=req.body;
+
+        //2.Use our model to build new User
+        const newUser= new User(userData);
+
+        //3.Save it securely into MongoDB
+        await newUser.save();
+
+        //4.Send a success message back
+        res.status(201).json({message:"User saved!",user: newUser});
+    }catch(error){
+        res.status(400).json({error:"Failed to save user!"});
+    }
+
 })
 
 //4.Tell the application to listen on a specific port(like channel 3000 on a TV)
