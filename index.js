@@ -36,7 +36,7 @@ app.get('/api/user',function(request,response){
         name:"Alex",
         role:"developer",
         level:"senior"
-    })
+    });
 });
 /*
 // A dynamic route that reads the URL.
@@ -141,7 +141,7 @@ app.put('/api/user/:id',function(request,response){
     else{
         response.status(404).json({error:"User not found!"});
     }
-})
+});
 
 //We connected Database
 mongoose.connect(process.env.MONGO_URI)
@@ -170,7 +170,42 @@ app.post('/users', async function(req,res){
         res.status(400).json({error:"Failed to save user!"});
     }
 
-})
+});
+
+//Add the get route
+app.get('/users', async function(req,res){
+    try{
+        //Tell the database to find all users
+        const allUsers= await User.find({});
+
+        //Send the list back as JSON
+        res.status(200).json(allUsers);
+
+    }catch(error){
+        res.status(500).json({error: "Failed to fetch users"});
+    }
+});
+
+//Add the dynamic route
+app.get('/users/:id', async function(req,res){
+    try{
+        //Grab the ID the user typed in the web address
+        const searchId = req.params.id;
+
+        //Ask the database to find the user with this exact ID
+        const foundUser = await User.findById(searchId);
+
+        //If the database cannot find them, send an error
+        if(!foundUser){
+            return res.status(404).json({message: "User not found"});
+        }
+        
+        //Send the found user back
+        res.status(200).json(foundUser);
+    }catch(error){
+        res.status(500).json({error: "Something went wrong"});
+    }
+});
 
 //4.Tell the application to listen on a specific port(like channel 3000 on a TV)
 app.listen(3000, function(){
